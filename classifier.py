@@ -27,7 +27,7 @@ class NaiveBayesDocumentClassifier:
             to you. Recommendation: use 'pickle' to store/load this model! """
         self.model = None
 
-    def train(self, features, labels):
+    def train(self, features, labels, voc):
         """
         trains a document classifier and stores all relevant
         information in 'self.model'.
@@ -63,7 +63,10 @@ class NaiveBayesDocumentClassifier:
                            ...
                        }
         """
-        raise NotImplementedError()
+
+        categories = {}
+
+
 
         # FIXME: implement training
 
@@ -109,17 +112,19 @@ if __name__ == "__main__":
 
     def read_json(path):
         with open(path) as f:
-            data = json.load(f)['docs']
+            all_data = json.load(f)
+            data = all_data["docs"]
+            voc = all_data["vocabulary"]
             features, labels = {}, {}
             for f in data:
                 features[f] = data[f]['tokens']
                 labels[f] = data[f]['label']
-        return features, labels
+        return features, labels, voc
 
 
     if args.train:
-        features, labels = read_json('train.json')
-        classifier.train(features, labels)
+        features, labels, voc = read_json('train_filtered.json')
+        classifier.train(features, labels, voc)
 
     if args.apply:
         features, labels = read_json('test.json')
