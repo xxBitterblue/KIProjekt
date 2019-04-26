@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, os, argparse, json
+import sys, os, argparse, json, pickle
 
 """
   "News Classifier" 
@@ -63,14 +63,35 @@ class NaiveBayesDocumentClassifier:
                            ...
                        }
         """
+        wordsInCategories = {}  #{label: {word: amount...}...}
+        probability = {}  #{label: {word: probability...}.....}
+        categories = {}  #{label: amount.....}
+        voc = [x for x in voc.keys()]  #Saves all vocabulary keys in a list for an easy iteration
 
-        categories = {}
+        "Read in amount ob categories in dic 'categories' and the amount of words for all texts of a " \
+        "categorie in the dic 'wordsInCategories' in the way '{label:{word: amount...}...}' "
+        for article, token in features.items():
+            actLabel = labels[article]
+            categories[actLabel] = 1 + categories.get(actLabel, 0)
+            if actLabel not in wordsInCategories.keys():
+                wordsInCategories[actLabel] = {}
+            for word in voc:
+                if word not in wordsInCategories[actLabel]:
+                    wordsInCategories[actLabel][word] = 0
+                if word in token.keys():
+                    wordsInCategories[actLabel][word] = 1 + wordsInCategories[actLabel].get(word, 0)
 
+        "Calculate the probability for each word of our vocabulary for each label"
+        for label, words in wordsInCategories.items():
+            for wor, amount in words.items():
+                if label not in probability.keys():
+                    probability[label] = {}
+                probability[label][wor] = amount / categories[label]
 
+        "Saving dic into a pickle file"
+        pickle.dump(probability, open("ProbabilityOfWordsInArticle.p", "wb"))
+        #  for loading: probability = pickle.load( open( "ProbabilityOfWordsInArticle.p", "rb" ) )
 
-        # FIXME: implement training
-
-        # FIXME: at the end of training, store self.model using pickle.
 
     def apply(self, features):
         """
