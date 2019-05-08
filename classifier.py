@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, os, argparse, json, pickle
+import sys, os, argparse, json, pickle, math
 
 """
   "News Classifier" 
@@ -66,7 +66,10 @@ class NaiveBayesDocumentClassifier:
         wordsInCategories = {}  #{label: {word: amount...}...}
         probability = {}  #{label: {word: probability...}.....}
         categories = {}  #{label: amount.....}
+        categorieAmount = {}
+        categoriesProbability = {}
         voc = [x for x in voc.keys()]  #Saves all vocabulary keys in a list for an easy iteration
+        allArticle = len(features)
 
         "Read in amount ob categories in dic 'categories' and the amount of words for all texts of a " \
         "categorie in the dic 'wordsInCategories' in the way '{label:{word: amount...}...}' "
@@ -88,8 +91,19 @@ class NaiveBayesDocumentClassifier:
                     probability[label] = {}
                 probability[label][wor] = amount / categories[label]
 
+        "Calculate probability of each label"
+        sumLabel = sum(categories.values())
+        for label, amount in categories.items():
+            categoriesProbability[label] = amount / sumLabel
+
+        for label, amount in categories.items():
+            categorieAmount[label] = 1 / (amount + (amount / 10))
+
+
         "Saving dic into a pickle file"
         pickle.dump(probability, open("ProbabilityOfWordsInArticle.p", "wb"))
+        pickle.dump(categoriesProbability, open("CategoriesInArticle.p", "wb"))
+        pickle.dump(categorieAmount, open("CategoriesAmount.p", "wb"))
         #  for loading: probability = pickle.load( open( "ProbabilityOfWordsInArticle.p", "rb" ) )
 
 
@@ -111,9 +125,35 @@ class NaiveBayesDocumentClassifier:
                    ...
                  }
         """
-        raise NotImplementedError()
+        findLabel = {} # {articleName : {categories : probability}}
+        wordProbability = pickle.load(open("ProbabilityOfWordsInArticle.p", "rb"))
+        categoriesProbability = pickle.load(open("CategoriesInArticle.p", "rb"))
+        categorieAmount = pickle.load(open("CategoriesAmount.p", "rb"))
 
-        # FIXME: implement model application
+        "Calculates probability for each label for every article"
+        for name, words in features.items():
+            for cat, probability in categoriesProbability.items():
+                findLabel[cat] = math.log(2, probability)
+                for w, amount in wordProbability[cat].items():
+                    if w in words:
+                        if wordProbability[cat][w] != 0:
+                            findLabel[cat] += math.log(2, wordProbability[cat][w])
+                        else:
+                            findLabel[cat] += math.log(2, categorieAmount[cat])
+                    else:
+                        if (1 - wordProbability[cat][w]) != 0:
+                            print(1 - wordProbability[cat][w])
+                            findLabel[cat] += math.log(2, (1 - wordProbability[cat][w]))
+                        else:
+                            findLabel[cat] += math.log(2, (1 - categorieAmount[cat]))
+
+        "Picks for each article the label with the highest probability"
+        for article, label in findLabel.items():
+            aktLabel = sorted(label.items(), key=lambda x: x[1], reverse=True)[0].key()
+            findLabel[article] = aktLabel
+
+        return findLabel
+
 
 
 if __name__ == "__main__":
@@ -148,10 +188,18 @@ if __name__ == "__main__":
         classifier.train(features, labels, voc)
 
     if args.apply:
-        features, labels = read_json('test.json')
+        features, labels, voc = read_json('test.json')
         result = classifier.apply(features)
 
-        # FIXME: measure error rate on 'test.json'
+        allArticle = len(features)
+        wrongPicked = 0
+
+        for name, pickedLabel in result.items():
+             if pickedLabel != labels[name]:
+                 wrongPicked += 1
+
+        failure = wrongPicked / allArticle
+        print(failure, "%")
 
 
 
