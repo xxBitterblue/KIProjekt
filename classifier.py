@@ -133,23 +133,25 @@ class NaiveBayesDocumentClassifier:
         "Calculates probability for each label for every article"
         for name, words in features.items():
             for cat, probability in categoriesProbability.items():
-                findLabel[cat] = math.log(2, probability)
+                findLabel[name] = {}
+                findLabel[name][cat] = math.log(2, probability)
                 for w, amount in wordProbability[cat].items():
                     if w in words:
                         if wordProbability[cat][w] != 0:
-                            findLabel[cat] += math.log(2, wordProbability[cat][w])
+                            findLabel[name][cat] += math.log(2, wordProbability[cat][w])
                         else:
-                            findLabel[cat] += math.log(2, categorieAmount[cat])
+                            findLabel[name][cat] += math.log(2, categorieAmount[cat])
                     else:
-                        if (1 - wordProbability[cat][w]) != 0:
-                            print(1 - wordProbability[cat][w])
-                            findLabel[cat] += math.log(2, (1 - wordProbability[cat][w]))
+                        if (1 - wordProbability[cat][w]) != 1:
+                            findLabel[name][cat] += math.log(2, (1 - wordProbability[cat][w]))
                         else:
-                            findLabel[cat] += math.log(2, (1 - categorieAmount[cat]))
+                            findLabel[name][cat] += math.log(2,  categorieAmount[cat])
+
+        #print(findLabel.items())
 
         "Picks for each article the label with the highest probability"
         for article, label in findLabel.items():
-            aktLabel = sorted(label.items(), key=lambda x: x[1], reverse=True)[0].key()
+            aktLabel = sorted(label.items(), key=lambda x: x[1], reverse=True)[0][0]
             findLabel[article] = aktLabel
 
         return findLabel
