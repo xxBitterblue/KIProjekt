@@ -132,8 +132,8 @@ class NaiveBayesDocumentClassifier:
 
         "Calculates probability for each label for every article"
         for name, words in features.items():
+            findLabel[name] = {}
             for cat, probability in categoriesProbability.items():
-                findLabel[name] = {}
                 findLabel[name][cat] = math.log(2, probability)
                 for w, amount in wordProbability[cat].items():
                     if w in words:
@@ -142,20 +142,19 @@ class NaiveBayesDocumentClassifier:
                         else:
                             findLabel[name][cat] += math.log(2, categorieAmount[cat])
                     else:
-                        if (1 - wordProbability[cat][w]) != 1:
+                        if wordProbability[cat][w] != 0:
                             findLabel[name][cat] += math.log(2, (1 - wordProbability[cat][w]))
                         else:
                             findLabel[name][cat] += math.log(2,  categorieAmount[cat])
 
-        #print(findLabel.items())
-
         "Picks for each article the label with the highest probability"
         for article, label in findLabel.items():
             aktLabel = sorted(label.items(), key=lambda x: x[1], reverse=True)[0][0]
+            #print(label.items())
+            #print(aktLabel)
             findLabel[article] = aktLabel
 
         return findLabel
-
 
 
 if __name__ == "__main__":
@@ -197,11 +196,11 @@ if __name__ == "__main__":
         wrongPicked = 0
 
         for name, pickedLabel in result.items():
-             if pickedLabel != labels[name]:
-                 wrongPicked += 1
+            if pickedLabel != labels[name]:
+                wrongPicked += 1
 
         failure = wrongPicked / allArticle
-        print(failure, "%")
+        print(failure * 100, "%")
 
 
 
