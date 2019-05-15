@@ -126,32 +126,35 @@ class NaiveBayesDocumentClassifier:
                  }
         """
         findLabel = {} # {articleName : {categories : probability}}
-        wordProbability = pickle.load(open("ProbabilityOfWordsInArticle.p", "rb"))
-        categoriesProbability = pickle.load(open("CategoriesInArticle.p", "rb"))
-        categorieAmount = pickle.load(open("CategoriesAmount.p", "rb"))
+        wordProbability = pickle.load(open("ProbabilityOfWordsInArticle.p", "rb")) #wahrscheinlichkeit für ein wort pro Kategorie
+        categoriesProbability = pickle.load(open("CategoriesInArticle.p", "rb")) #generelle wahrscheinlichkeit einer Kategorie
+        #categorieAmount = pickle.load(open("CategoriesAmount.p", "rb")) #amount für wenn die amount 0 wäre
+        standartAmount = 0.0001
 
         "Calculates probability for each label for every article"
         for name, words in features.items():
             findLabel[name] = {}
             for cat, probability in categoriesProbability.items():
-                findLabel[name][cat] = math.log(2, probability)
+                findLabel[name][cat] = math.log(probability,2)
                 for w, amount in wordProbability[cat].items():
                     if w in words:
                         if wordProbability[cat][w] != 0:
-                            findLabel[name][cat] += math.log(2, wordProbability[cat][w])
+                            findLabel[name][cat] += math.log(wordProbability[cat][w],2)
                         else:
-                            findLabel[name][cat] += math.log(2, categorieAmount[cat])
+                            findLabel[name][cat] += math.log(standartAmount,2)
                     else:
                         if wordProbability[cat][w] != 0:
-                            findLabel[name][cat] += math.log(2, (1 - wordProbability[cat][w]))
+                            findLabel[name][cat] += math.log(1 - wordProbability[cat][w],2)
                         else:
-                            findLabel[name][cat] += math.log(2,  categorieAmount[cat])
+                            findLabel[name][cat] += math.log(1-standartAmount,2)
 
         "Picks for each article the label with the highest probability"
         for article, label in findLabel.items():
-            aktLabel = sorted(label.items(), key=lambda x: x[1], reverse=True)[0][0]
-            #print(label.items())
-            #print(aktLabel)
+            aktLabel = sorted(label.items(), key=lambda x: x[1], reverse=True)
+            print(article)
+            print(aktLabel)
+            aktLabel = aktLabel[0][0]
+            print(aktLabel)
             findLabel[article] = aktLabel
 
         return findLabel
@@ -189,7 +192,7 @@ if __name__ == "__main__":
         classifier.train(features, labels, voc)
 
     if args.apply:
-        features, labels, voc = read_json('test.json')
+        features, labels, voc = read_json('test_filtered.json')
         result = classifier.apply(features)
 
         allArticle = len(features)
