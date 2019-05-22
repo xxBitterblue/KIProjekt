@@ -77,6 +77,7 @@ def read_panitz(directory):
 imgs = read_panitz(PATH)
 
 print('Dimension der gelesenen Bilder:', imgs.shape)
+print(imgs[0][0])
 
 # zeigt ein Bild
 plt.imshow(imgs[17])
@@ -128,8 +129,15 @@ Momentan ist jedes der Bild noch ein D×D×3-Tensor. Machen Sie hieraus einen
 eindimensionalen Vektor. Skalieren Sie den Pixelbereich außerdem von 0,...,255 
 auf [0,1].
 '''
+#pass # FIXME
+def eindimVektor(matrix):
+    return np.reshape(matrix)
 
-pass # FIXME
+def skalier(pixel):
+    return pixel/255
+
+#erst jedes bild reshapen und danach jeden Farbwert skalieren
+
 
 
 
