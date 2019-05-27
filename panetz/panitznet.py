@@ -77,7 +77,6 @@ def read_panitz(directory):
 imgs = read_panitz(PATH)
 
 print('Dimension der gelesenen Bilder:', imgs.shape)
-print(imgs[0][0])
 
 # zeigt ein Bild
 plt.imshow(imgs[17])
@@ -136,8 +135,11 @@ def eindimVektor(matrix):
 def skalier(pixel):
     return pixel/255
 
-#erst jedes bild reshapen und danach jeden Farbwert skalieren
+#jedes bild reshapen und jeden Farbwert skalieren
+imgs = np.reshape((imgs/255), (len(imgs), D*D*3))
 
+print(imgs[0][0])
+print('Dimension der geänderten Bilder:', imgs.shape)
 
 
 
