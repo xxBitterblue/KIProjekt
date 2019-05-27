@@ -129,11 +129,6 @@ eindimensionalen Vektor. Skalieren Sie den Pixelbereich außerdem von 0,...,255
 auf [0,1].
 '''
 #pass # FIXME
-def eindimVektor(matrix):
-    return np.reshape(matrix)
-
-def skalier(pixel):
-    return pixel/255
 
 #jedes bild reshapen und jeden Farbwert skalieren
 imgs = np.reshape((imgs/255), (len(imgs), D*D*3))
