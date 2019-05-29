@@ -6,6 +6,9 @@ Stellen Sie zuerst sicher dass Tensorflow mindestens in Version 1.10
 vorhanden ist.
 '''
 import tensorflow as tf
+from tensorflow import keras
+import random
+import math
 print(tf.__version__)
 
 
@@ -105,7 +108,7 @@ noch nicht vorhandenen Rekonstruktionen) noch einmal dieselben Bilder übergeben
 def plot_reconstructions(imgs, recs):
 
     # Erstellt ein NxN-Grid zum Plotten der Bilder
-    N = int(np.ceil(sqrt(2*len(imgs))))
+    N = int(np.ceil(math.sqrt(2*len(imgs))))
     f, axarr = plt.subplots(nrows=N, ncols=N, figsize=(18,18))
     
     # Fügt die Bilder in den Plot ein
@@ -129,12 +132,14 @@ eindimensionalen Vektor. Skalieren Sie den Pixelbereich außerdem von 0,...,255
 auf [0,1].
 '''
 #pass # FIXME
+def flatten(imgs):
 
-#jedes bild reshapen und jeden Farbwert skalieren
-imgs = np.reshape((imgs/255), (len(imgs), D*D*3))
+    #jedes bild reshapen und jeden Farbwert skalieren
+    imgs = np.reshape((imgs/255), (len(imgs), D*D*3))
 
-print(imgs[0][0])
-print('Dimension der geänderten Bilder:', imgs.shape)
+    print('Dimension der geänderten Bilder:', imgs.shape)
+
+    return imgs
 
 
 
@@ -147,4 +152,51 @@ Implementieren Sie PanitzNet, d.h. erstellen Sie die Netzstruktur und trainieren
 Sie Ihr Netz. Orientieren Sie sich am in der Vorlesung vorgestellten Programmgerüst.
 '''
 
-pass # FIXME
+def get_model(hidden_units, learning_rate, std_dev, activation):
+    ''' creates a neural network with a hidden layer and an output layer.'''
+
+    model = keras.models.Sequential([
+        keras.layers.Dense(hidden_units, activation=activation, kernel_initializer=keras.initializers.random_normal(stddev=std_dev)), # 'zeros'
+        keras.layers.Dense(2, activation=tf.nn.sigmoid, kernel_initializer=keras.initializers.random_normal(stddev=std_dev)), # 'zeros'
+    ])
+
+    #model.compile(optimizer=keras.optimizers.SGD(lr=learning_rate),
+     #             loss='mean_squared_error',
+      #            metrics=['accuracy'])
+    model.compile(optimizer='adam',
+                  loss='mean_squared_error',
+                  metrics=['accuracy'])
+
+    return model
+
+def train(dataset, model):
+    ''' trains the neural network on a dataset.'''
+
+    X,t = dataset.get(batchsize=None)
+
+    # training loop
+    for epoch in range(1000):
+
+        # feed a batch of samples (X=inputs, t=targets)
+        # and adapt the network's weights.
+        model.fit(X, t, epochs=1)
+
+        # print a color plot to 'training.pdf'
+        #util.plot(model, X, t, 'training.pdf')
+        if epoch % 20 == 0:
+            akt_img = random.choices(imgs, k=10)
+            test_imgs = akt_img
+            test_recs = model.predict(test_imgs)
+            plot_reconstructions(test_imgs, test_recs)
+
+        # prints the classification accuracy
+        loss,acc = model.evaluate(X,t)
+        print('Accuracy:', acc)
+
+def main_loop():
+    dataset = flatten(imgs)
+    model = get_model(hidden_units=10, learning_rate=0.1, std_dev=1.0, activation=tf.nn.sigmoid)
+    train(dataset, model)
+
+
+main_loop()
