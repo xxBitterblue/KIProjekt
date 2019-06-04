@@ -14,6 +14,7 @@ print(tf.__version__)
 
 
 
+
 ###################################################################################
 ### 2. Daten einlesen
 ###################################################################################
@@ -75,17 +76,6 @@ def read_panitz(directory):
             imgs.append(img)
             
     return np.array(imgs)
-    
-
-imgs = read_panitz(PATH)
-
-print('Dimension der gelesenen Bilder:', imgs.shape)
-
-# zeigt ein Bild
-plt.imshow(imgs[17])
-plt.show()
-
-
 
 
 ###################################################################################
@@ -131,13 +121,13 @@ Momentan ist jedes der Bild noch ein D×D×3-Tensor. Machen Sie hieraus einen
 eindimensionalen Vektor. Skalieren Sie den Pixelbereich außerdem von 0,...,255 
 auf [0,1].
 '''
-#pass # FIXME
+
 def flatten(imgs):
 
     #jedes bild reshapen und jeden Farbwert skalieren
     imgs = np.reshape((imgs/255), (len(imgs), D*D*3))
 
-    print('Dimension der geänderten Bilder:', imgs.shape)
+    #print('Dimension der geänderten Bilder:', imgs.shape)
 
     return imgs
 
@@ -152,27 +142,11 @@ Implementieren Sie PanitzNet, d.h. erstellen Sie die Netzstruktur und trainieren
 Sie Ihr Netz. Orientieren Sie sich am in der Vorlesung vorgestellten Programmgerüst.
 '''
 
-def get_model(hidden_units, learning_rate, std_dev, activation):
-    ''' creates a neural network with a hidden layer and an output layer.'''
-
-    model = keras.models.Sequential([
-        keras.layers.Dense(hidden_units, activation=activation, kernel_initializer=keras.initializers.random_normal(stddev=std_dev)), # 'zeros'
-        keras.layers.Dense(2, activation=tf.nn.sigmoid, kernel_initializer=keras.initializers.random_normal(stddev=std_dev)), # 'zeros'
-    ])
-
-    #model.compile(optimizer=keras.optimizers.SGD(lr=learning_rate),
-     #             loss='mean_squared_error',
-      #            metrics=['accuracy'])
-    model.compile(optimizer='adam',
-                  loss='mean_squared_error',
-                  metrics=['accuracy'])
-
-    return model
-
 def train(dataset, model):
     ''' trains the neural network on a dataset.'''
 
-    X,t = dataset.get(batchsize=None)
+    X = dataset
+    t = list()
 
     # training loop
     for epoch in range(1000):
@@ -189,14 +163,38 @@ def train(dataset, model):
             test_recs = model.predict(test_imgs)
             plot_reconstructions(test_imgs, test_recs)
 
+
         # prints the classification accuracy
         loss,acc = model.evaluate(X,t)
         print('Accuracy:', acc)
 
+
+def get_model(hidden_units, learning_rate, std_dev, activation):
+    ''' creates a neural network with a hidden layer and an output layer.'''
+
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Dense(hidden_units, activation=activation, kernel_initializer=keras.initializers.random_normal(stddev=std_dev)), # 'zeros'
+        tf.keras.layers.Dense(2, activation=tf.nn.sigmoid, kernel_initializer=keras.initializers.random_normal(stddev=std_dev)), # 'zeros'
+    ])
+
+    model.compile(optimizer=tf.train.AdamOptimizer(learning_rate),
+                  loss='mean_squared_error',
+                  metrics=['accuracy'])
+
+    return model
+
+
 def main_loop():
-    dataset = flatten(imgs)
-    model = get_model(hidden_units=10, learning_rate=0.1, std_dev=1.0, activation=tf.nn.sigmoid)
+    dataset = np.asarray(flatten(imgs))
+    model = get_model(hidden_units=10, learning_rate=0.01, std_dev=1.0, activation=tf.nn.sigmoid)
     train(dataset, model)
 
+
+imgs = read_panitz(PATH)
+#print('Dimension der gelesenen Bilder:', imgs.shape)
+
+# zeigt ein Bild
+#plt.imshow(imgs[17])
+#plt.show()
 
 main_loop()
