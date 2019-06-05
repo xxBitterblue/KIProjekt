@@ -123,8 +123,7 @@ auf [0,1].
 '''
 
 def flatten(imgs):
-
-    #jedes bild reshapen und jeden Farbwert skalieren
+    """jedes bild reshapen und jeden Farbwert skalieren"""
     imgs = np.reshape((imgs/255), (len(imgs), D*D*3))
 
     #print('Dimension der geänderten Bilder:', imgs.shape)
@@ -142,7 +141,7 @@ Implementieren Sie PanitzNet, d.h. erstellen Sie die Netzstruktur und trainieren
 Sie Ihr Netz. Orientieren Sie sich am in der Vorlesung vorgestellten Programmgerüst.
 '''
 
-def train(dataset, model):
+def train(dataset, valid, model):
     ''' trains the neural network on a dataset.'''
 
     X = dataset
@@ -157,23 +156,36 @@ def train(dataset, model):
         # print a color plot to 'training.pdf'
         #util.plot(model, X, t, 'training.pdf')
         if epoch % 20 == 0:
-            akt_img = random.choices(imgs, k=10)
-            test_imgs = akt_img
-            test_recs = model.predict(test_imgs)
-            plot_reconstructions(test_imgs, test_recs)
+            akt_img = np.array(random.choices(imgs, k=10)).reshape((10,-1))
+            print(akt_img.shape)
+            test_recs = model.predict(akt_img)
+            plot_reconstructions(akt_img, test_recs)
 
-
+    print("hello")
         # prints the classification accuracy
-        loss,acc = model.evaluate(X,t)
-        print('Accuracy:', acc)
+        #loss,acc = model.evaluate(X,t)
+        #print('Accuracy:', acc)
 
 
 def get_model(hidden_units, learning_rate, std_dev, activation):
     ''' creates a neural network with a hidden layer and an output layer.'''
 
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Dense(hidden_units, activation=activation, kernel_initializer=keras.initializers.random_normal(stddev=std_dev)), # 'zeros'
-        tf.keras.layers.Dense(2, activation=tf.nn.sigmoid, kernel_initializer=keras.initializers.random_normal(stddev=std_dev)), # 'zeros'
+        tf.keras.layers.Dense(1000, activation=tf.nn.sigmoid), #, kernel_initializer=keras.initializers.random_normal(stddev=std_dev)), # 'zeros'
+        tf.keras.layers.Dense(500, activation=tf.nn.sigmoid),
+                              #kernel_initializer=keras.initializers.random_normal(stddev=std_dev)),  # 'zeros'
+        tf.keras.layers.Dense(100, activation=tf.nn.sigmoid),
+                              #kernel_initializer=keras.initializers.random_normal(stddev=std_dev)),  # 'zeros'
+        tf.keras.layers.Dense(50, activation=tf.nn.sigmoid),
+                              #kernel_initializer=keras.initializers.random_normal(stddev=std_dev)),  # 'zeros'
+        tf.keras.layers.Dense(100, activation=tf.nn.sigmoid),
+                             # kernel_initializer=keras.initializers.random_normal(stddev=std_dev)),  # 'zeros'
+        tf.keras.layers.Dense(500, activation=tf.nn.sigmoid),
+                             # kernel_initializer=keras.initializers.random_normal(stddev=std_dev)),  # 'zeros'
+        tf.keras.layers.Dense(1000, activation=tf.nn.sigmoid),
+                             # kernel_initializer=keras.initializers.random_normal(stddev=std_dev)),  # 'zeros'
+        tf.keras.layers.Dense(D*D*3, activation=tf.nn.sigmoid),
+                              #kernel_initializer=keras.initializers.random_normal(stddev=std_dev)),  # 'zeros'
     ])
 
     model.compile(optimizer=tf.train.AdamOptimizer(learning_rate),
@@ -184,9 +196,11 @@ def get_model(hidden_units, learning_rate, std_dev, activation):
 
 
 def main_loop():
-    dataset = np.array(flatten(imgs))
+    allData = flatten(imgs)
+    dataset = allData[:1001]
+    valid = allData[1001:]
     model = get_model(hidden_units=10, learning_rate=0.01, std_dev=1.0, activation=tf.nn.sigmoid)
-    train(dataset, model)
+    train(dataset, valid, model)
 
 
 imgs = read_panitz(PATH)
