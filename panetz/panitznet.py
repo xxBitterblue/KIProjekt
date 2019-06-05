@@ -146,14 +146,13 @@ def train(dataset, model):
     ''' trains the neural network on a dataset.'''
 
     X = dataset
-    t = list()
 
     # training loop
     for epoch in range(1000):
 
         # feed a batch of samples (X=inputs, t=targets)
         # and adapt the network's weights.
-        model.fit(X, t, epochs=1)
+        model.fit(X, X, epochs=1)
 
         # print a color plot to 'training.pdf'
         #util.plot(model, X, t, 'training.pdf')
@@ -185,7 +184,7 @@ def get_model(hidden_units, learning_rate, std_dev, activation):
 
 
 def main_loop():
-    dataset = np.asarray(flatten(imgs))
+    dataset = np.array(flatten(imgs))
     model = get_model(hidden_units=10, learning_rate=0.01, std_dev=1.0, activation=tf.nn.sigmoid)
     train(dataset, model)
 

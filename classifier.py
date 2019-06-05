@@ -192,7 +192,7 @@ if __name__ == "__main__":
         classifier.train(features, labels, voc)
 
     if args.apply:
-        features, labels, voc = read_json('test_filtered.json')
+        features, labels, voc = read_json('test.json')
         result = classifier.apply(features)
 
         allArticle = len(features)
